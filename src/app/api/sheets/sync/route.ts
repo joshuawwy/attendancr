@@ -1,11 +1,9 @@
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase";
 import { GoogleSheetsStudentRow } from "@/types";
+import { google } from "googleapis";
 
 export const dynamic = "force-dynamic";
-
-const GOOGLE_SHEETS_API_KEY = process.env.GOOGLE_SHEETS_API_KEY;
-const GOOGLE_SHEET_ID = process.env.GOOGLE_SHEET_ID;
 
 interface SyncResult {
   success: boolean;
@@ -13,6 +11,23 @@ interface SyncResult {
   students_updated: number;
   students_deleted: number;
   errors?: string[];
+}
+
+async function getGoogleSheetsClient() {
+  const privateKey = process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY?.replace(/\\n/g, "\n");
+  const clientEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+
+  if (!privateKey || !clientEmail) {
+    throw new Error("Google Service Account credentials not configured");
+  }
+
+  const auth = new google.auth.JWT({
+    email: clientEmail,
+    key: privateKey,
+    scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
+  });
+
+  return google.sheets({ version: "v4", auth });
 }
 
 export async function POST(): Promise<Response> {
@@ -45,21 +60,21 @@ export async function POST(): Promise<Response> {
   }
 
   try {
-    if (!GOOGLE_SHEETS_API_KEY || !GOOGLE_SHEET_ID) {
-      throw new Error("Google Sheets API not configured");
+    const sheetId = process.env.GOOGLE_SHEET_ID;
+    if (!sheetId) {
+      throw new Error("Google Sheet ID not configured");
     }
+
+    // Get authenticated Google Sheets client
+    const sheets = await getGoogleSheetsClient();
 
     // Fetch data from Google Sheets
-    const sheetUrl = `https://sheets.googleapis.com/v4/spreadsheets/${GOOGLE_SHEET_ID}/values/Sheet1?key=${GOOGLE_SHEETS_API_KEY}`;
-    const response = await fetch(sheetUrl);
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId: sheetId,
+      range: "Sheet1",
+    });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Google Sheets API error: ${errorText}`);
-    }
-
-    const data = await response.json();
-    const rows = data.values as string[][];
+    const rows = response.data.values as string[][];
 
     if (!rows || rows.length < 2) {
       throw new Error("No data found in sheet");
