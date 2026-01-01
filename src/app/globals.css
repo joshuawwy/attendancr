@@ -1,0 +1,67 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-rgb: 255, 255, 255;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: rgb(var(--background-rgb));
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+}
+
+/* Custom scrollbar for webkit browsers */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a1a1a1;
+}
+
+/* PWA install prompt styling */
+.pwa-install-prompt {
+  @apply fixed bottom-4 left-4 right-4 bg-primary-600 text-white p-4 rounded-lg shadow-lg flex items-center justify-between z-50;
+}
+
+/* Toast notifications */
+.toast {
+  @apply fixed top-4 right-4 px-6 py-4 rounded-lg shadow-lg z-50 animate-pulse;
+}
+
+.toast-success {
+  @apply bg-success-500 text-white;
+}
+
+.toast-error {
+  @apply bg-error-500 text-white;
+}
+
+/* Large touch targets for tablet use */
+.touch-target {
+  min-height: 48px;
+  min-width: 48px;
+}
+
+/* PIN input styling */
+.pin-input {
+  @apply w-12 h-14 text-center text-2xl font-bold border-2 border-gray-300 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-200 outline-none transition-all;
+}
+
+.pin-input:focus {
+  @apply border-primary-500;
+}
